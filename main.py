@@ -123,6 +123,16 @@ class FSM:
 	def __is_in_final_state(self):
 		return self.__current_state in self.__final_states
 
+	def all_possible_transitions(self, states, char):
+		result = []
+		for state in states:
+			try:
+				result += self.__states[state][char]
+			except:
+				pass
+		result = sorted(list(set(result)))
+		return result
+
 	def add_state(self, index, is_final):
 		if index in self.__states:
 			raise ValueError('State is already exist in FSM')
@@ -143,6 +153,12 @@ class FSM:
 	def set_initial_state(self, index):
 		if index in self.__states:
 			self.__current_state = index
+		else:
+			raise ValueError('State does not exist in FSM')
+
+	def add_final_state(self, index):
+		if index in self.__states:
+			self.__final_states.append(index)
 		else:
 			raise ValueError('State does not exist in FSM')
 
