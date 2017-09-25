@@ -169,6 +169,22 @@ class FSM:
 		else:
 			raise ValueError('State does not exist in FSM')
 
+	def epsilon_closure(self, index):
+		result = [index]
+		try:
+			epsilon_ways = self.__states[index]['$']
+			for way in epsilon_ways:
+				result += self.epsilon_closure(way)
+		except:
+			pass
+		return result
+
+	def all_epsilon_closures(self):
+		result = []
+		for index in self.__states:
+			result.append((index, self.epsilon_closure(index)))
+		return result
+
 	def acceptance(self, s):
 		if len(s) == 0:
 			return self.__is_in_final_state()
@@ -248,11 +264,12 @@ class FSMBuilder:
 
 	@classmethod
 	def remove_eps(cls, fsm):
-		pass
+		closures = fsm.all_epsilon_closures()
+		return fsm
 
 	@classmethod
-	def determinize(cls, nondetermined):
-		pass
+	def determinize(cls, fsm):
+		return fsm
 
 tokens = Lexer.tokenize('{a|b}bba')
 print(tokens)
@@ -260,6 +277,8 @@ x = FSMBuilder.build(tokens)
 print(x._FSM__states)
 print('x acceptance $aa$bba', x.acceptance('$aa$bba'))
 print('x acceptance $b$bba', x.acceptance('$b$bba'))
+print('x acceptance $bbababababaaababa$bba', x.acceptance('$bbababababaaababa$bba'))
+print(x.all_epsilon_closures())
 
 a = FSM()
 a.add_state('0', False)
