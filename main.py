@@ -194,7 +194,7 @@ class FSMBuilder:
 			print(addr)
 			current = addr[0]
 			if type(current[1]) == type([]):
-				prev = 0
+				prev = current[2]
 				last_in_seq = current[3]
 				del a._FSM__states[current[2]][current[0]]
 				for i in current[1][:-1]:
@@ -231,6 +231,19 @@ class FSMBuilder:
 					a.add_transition(from_state, to_state, '@' + str(address))
 					address += 1
 				addr = addr[1:]
+			elif type(current[1]) == type(IterationToken('')):
+				del a._FSM__states[current[2]][current[0]]
+				from_state = current[2]
+				to_state = current[3]
+				last_state += 1
+				a.add_state(str(last_state), False)
+				a.add_transition(from_state, str(last_state), '$')
+				a.add_transition(str(last_state), to_state, '$')
+				print(last_state)
+				addr.append(('@' + str(address), current[1].content, str(last_state), str(last_state)))
+				a.add_transition(str(last_state), str(last_state), '@' + str(address))
+				address += 1
+				addr = addr[1:]
 			else:
 				break
 		return a, addr
@@ -239,13 +252,13 @@ class FSMBuilder:
 	def determinize(cls, nondetermined):
 		pass
 
-tokens = Lexer.tokenize('(a|b)bba')
+tokens = Lexer.tokenize('{a|b}bba')
 print(tokens)
 x, ad = FSMBuilder.build(tokens)
 print(ad)
 print(x._FSM__states)
-print('x acceptance abba', x.acceptance('abba'))
-print('x acceptance bbba', x.acceptance('bbba'))
+print('x acceptance $aa$bba', x.acceptance('$aa$bba'))
+print('x acceptance $b$bba', x.acceptance('$b$bba'))
 
 a = FSM()
 a.add_state('0', False)
