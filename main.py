@@ -191,26 +191,44 @@ class FSMBuilder:
 		last_state = 1
 		addr = [('@0', tokens, '0', '1')]
 		while len(addr) > 0:
+			print(addr)
 			current = addr[0]
 			if type(current[1]) == type([]):
 				prev = 0
 				last_in_seq = current[3]
 				del a._FSM__states[current[2]][current[0]]
-				for i in tokens[:-1]:
+				for i in current[1][:-1]:
 					last_state += 1
 					a.add_state(str(last_state), False)
 					if type(i) == type(LetterToken('')):
 						a.add_transition(str(prev), str(last_state), i.content)
+					elif type(i) == type(GroupToken('')):
+						addr.append(('@' + str(address), i.content, str(prev), str(last_state)))
+						a.add_transition(str(prev), str(last_state), '@' + str(address))
+						address += 1
 					else:
 						addr.append(('@' + str(address), i, str(prev), str(last_state)))
 						a.add_transition(str(prev), str(last_state), '@' + str(address))
 						address += 1
 					prev = last_state
-				if type(tokens[-1]) == type(LetterToken('')):
-					a.add_transition(str(prev), str(last_in_seq), tokens[-1].content)
-				else:
-					addr.append(('@' + str(address), tokens[-1], str(prev), str(last_in_seq)))
+				if type(current[1][-1]) == type(LetterToken('')):
+					a.add_transition(str(prev), str(last_in_seq), current[1][-1].content)
+				elif type(current[1][-1]) == type(GroupToken('')):
+					addr.append(('@' + str(address), current[1][-1].content, str(prev), str(last_in_seq)))
 					a.add_transition(str(prev), str(last_in_seq), '@' + str(address))
+					address += 1
+				else:
+					addr.append(('@' + str(address), current[1][-1], str(prev), str(last_in_seq)))
+					a.add_transition(str(prev), str(last_in_seq), '@' + str(address))
+					address += 1
+				addr = addr[1:]
+			elif type(current[1]) == type(DisjunctionToken('')):
+				del a._FSM__states[current[2]][current[0]]
+				from_state = current[2]
+				to_state = current[3]
+				for item in current[1].content:
+					addr.append(('@' + str(address), item, from_state, to_state))
+					a.add_transition(from_state, to_state, '@' + str(address))
 					address += 1
 				addr = addr[1:]
 			else:
@@ -221,12 +239,13 @@ class FSMBuilder:
 	def determinize(cls, nondetermined):
 		pass
 
-tokens = Lexer.tokenize('abba')
+tokens = Lexer.tokenize('(a|b)bba')
 print(tokens)
 x, ad = FSMBuilder.build(tokens)
 print(ad)
 print(x._FSM__states)
-print('x acceptance', x.acceptance('abba'))
+print('x acceptance abba', x.acceptance('abba'))
+print('x acceptance bbba', x.acceptance('bbba'))
 
 a = FSM()
 a.add_state('0', False)
