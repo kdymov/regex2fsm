@@ -133,6 +133,13 @@ class FSM:
 		result = sorted(list(set(result)))
 		return result
 
+	def all_possible_chars(self, states):
+		result = []
+		for state in states:
+			result += self.__states[state].keys()
+		result = sorted(list(set(result)))
+		return result
+
 	def add_state(self, index, is_final):
 		if index in self.__states:
 			raise ValueError('State is already exist in FSM')
@@ -172,8 +179,54 @@ class FSM:
 					return True
 			return False
 
-tokens = Lexer.tokenize('{a|b}bba')
+class FSMBuilder:
+	@classmethod
+	def build(cls, tokens):
+		a = FSM()
+		a.add_state('0', False)
+		a.add_state('1', True)
+		a.add_transition('0', '1', '@0')
+		a.set_initial_state('0')
+		address = 1
+		last_state = 1
+		addr = [('@0', tokens, '0', '1')]
+		while len(addr) > 0:
+			current = addr[0]
+			if type(current[1]) == type([]):
+				prev = 0
+				last_in_seq = current[3]
+				del a._FSM__states[current[2]][current[0]]
+				for i in tokens[:-1]:
+					last_state += 1
+					a.add_state(str(last_state), False)
+					if type(i) == type(LetterToken('')):
+						a.add_transition(str(prev), str(last_state), i.content)
+					else:
+						addr.append(('@' + str(address), i, str(prev), str(last_state)))
+						a.add_transition(str(prev), str(last_state), '@' + str(address))
+						address += 1
+					prev = last_state
+				if type(tokens[-1]) == type(LetterToken('')):
+					a.add_transition(str(prev), str(last_in_seq), tokens[-1].content)
+				else:
+					addr.append(('@' + str(address), tokens[-1], str(prev), str(last_in_seq)))
+					a.add_transition(str(prev), str(last_in_seq), '@' + str(address))
+					address += 1
+				addr = addr[1:]
+			else:
+				break
+		return a, addr
+
+	@classmethod
+	def determinize(cls, nondetermined):
+		pass
+
+tokens = Lexer.tokenize('abba')
 print(tokens)
+x, ad = FSMBuilder.build(tokens)
+print(ad)
+print(x._FSM__states)
+print('x acceptance', x.acceptance('abba'))
 
 a = FSM()
 a.add_state('0', False)
@@ -189,3 +242,7 @@ a.set_initial_state('0')
 test = ['ba', 'a', 'aaaab', 'abba', 'ababbbbbbababababaa']
 for i in test:
 	print(a.acceptance(i))
+
+trans = a.all_possible_chars(['0', '1'])
+for tr in trans:
+	print(a.all_possible_transitions(['0', '1'], tr))
