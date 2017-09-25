@@ -247,6 +247,10 @@ class FSMBuilder:
 		return a
 
 	@classmethod
+	def remove_eps(cls, fsm):
+		pass
+
+	@classmethod
 	def determinize(cls, nondetermined):
 		pass
 
