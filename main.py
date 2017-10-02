@@ -98,6 +98,8 @@ class Lexer:
 		return cls.__make_plane(cls.__outer_parse(cls.__parse_groups(regex)))
 
 class FSM:
+	EPSILON = '$'
+
 	def __init__(self):
 		self.__states = {}
 		self.__final_states = []
@@ -128,6 +130,10 @@ class FSM:
 		for state in states:
 			try:
 				result += self.__states[state][char]
+			except:
+				pass
+			try:
+				result += self.__states[state][FSM.EPSILON]
 			except:
 				pass
 		result = sorted(list(set(result)))
@@ -172,12 +178,12 @@ class FSM:
 	def epsilon_closure(self, index):
 		result = [index]
 		try:
-			epsilon_ways = self.__states[index]['$']
+			epsilon_ways = self.__states[index][FSM.EPSILON]
 			for way in epsilon_ways:
 				result += self.epsilon_closure(way)
 		except:
 			pass
-		return result
+		return sorted(list(set(result)))
 
 	def all_epsilon_closures(self):
 		result = []
@@ -252,8 +258,8 @@ class FSMBuilder:
 				to_state = current[3]
 				last_state += 1
 				a.add_state(str(last_state), False)
-				a.add_transition(from_state, str(last_state), '$')
-				a.add_transition(str(last_state), to_state, '$')
+				a.add_transition(from_state, str(last_state), FSM.EPSILON)
+				a.add_transition(str(last_state), to_state, FSM.EPSILON)
 				addr.append(('@' + str(address), current[1].content, str(last_state), str(last_state)))
 				a.add_transition(str(last_state), str(last_state), '@' + str(address))
 				address += 1
@@ -263,38 +269,54 @@ class FSMBuilder:
 		return a
 
 	@classmethod
-	def remove_eps(cls, fsm):
-		closures = fsm.all_epsilon_closures()
-		return fsm
-
-	@classmethod
 	def determinize(cls, fsm):
-		return fsm
+		def find_key_by_value(d, v):
+			for k in d:
+				if d[k] == v:
+					return k
+			return None
+
+		determined = FSM()
+		start = fsm.epsilon_closure(fsm._FSM__current_state)
+		new_keys = { '0': start }
+		queue = ['0']
+		new_state_key = 1
+		is_final = False
+		for item in start:
+			if item in fsm._FSM__final_states:
+				is_final = True
+		determined.add_state(queue[0], is_final)
+		determined.set_initial_state(queue[0])
+		while len(queue) > 0:
+			current = queue[0]
+			queue = queue[1:]
+			closure = new_keys[current]
+			chars = fsm.all_possible_chars(closure)
+			if FSM.EPSILON in chars:
+				pos = chars.index(FSM.EPSILON)
+				chars = chars[:pos] + chars[pos + 1:]
+			for char in chars:
+				trans = fsm.all_possible_transitions(closure, char)
+				to_state = find_key_by_value(new_keys, trans)
+				if to_state is None:
+					to_state = str(new_state_key)
+					new_state_key += 1
+					new_keys[to_state] = trans
+					queue.append(to_state)
+					is_final = False
+					for item in trans:
+						if item in fsm._FSM__final_states:
+							is_final = True
+					determined.add_state(to_state, is_final)
+				determined.add_transition(current, to_state, char)
+		return determined
 
 tokens = Lexer.tokenize('{a|b}bba')
 print(tokens)
 x = FSMBuilder.build(tokens)
+d = FSMBuilder.determinize(x)
 print(x._FSM__states)
-print('x acceptance $aa$bba', x.acceptance('$aa$bba'))
-print('x acceptance $b$bba', x.acceptance('$b$bba'))
-print('x acceptance $bbababababaaababa$bba', x.acceptance('$bbababababaaababa$bba'))
-print(x.all_epsilon_closures())
-
-a = FSM()
-a.add_state('0', False)
-a.add_state('1', False)
-a.add_state('2', False)
-a.add_state('3', True)
-a.add_transition('0', '0', 'a')
-a.add_transition('0', '0', 'b')
-a.add_transition('0', '1', 'b')
-a.add_transition('1', '2', 'b')
-a.add_transition('2', '3', 'a')
-a.set_initial_state('0')
-test = ['ba', 'a', 'aaaab', 'abba', 'ababbbbbbababababaa']
-for i in test:
-	print(a.acceptance(i))
-
-trans = a.all_possible_chars(['0', '1'])
-for tr in trans:
-	print(a.all_possible_transitions(['0', '1'], tr))
+print(d._FSM__states)
+print('d acceptance aabba', d.acceptance('aabba'))
+print('d acceptance bbba', d.acceptance('bbba'))
+print('d acceptance bbababababaaabababba', d.acceptance('bbababababaaabababba'))
