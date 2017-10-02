@@ -311,11 +311,11 @@ class FSMBuilder:
 				determined.add_transition(current, to_state, char)
 		return determined
 
-tokens = Lexer.tokenize('{a|b}bba')
-print(tokens)
-x = FSMBuilder.build(tokens)
-d = FSMBuilder.determinize(x)
-print(x._FSM__states)
+	@classmethod
+	def build_determined(cls, tokens):
+		return cls.determinize(cls.build(tokens))
+
+d = FSMBuilder.build_determined(Lexer.tokenize('{a|b}bba'))
 print(d._FSM__states)
 print('d acceptance aabba', d.acceptance('aabba'))
 print('d acceptance bbba', d.acceptance('bbba'))
