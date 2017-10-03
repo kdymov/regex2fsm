@@ -9,3 +9,16 @@ Regex processing algorithm:
     1. Build the FSM with epsilon transitions (marked as $)
     2. Build the determined FSM
 3. Check word acceptance using FSM.acceptance
+
+## How to run
+
+#### From command line:
+```
+python cli.py "{a|b}bba" abba ba ababba baba
+```
+First argument is regular expression, next arguments are words for acceptance testing.
+
+#### Using GUI:
+```
+python gui.py
+```
