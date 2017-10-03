@@ -1,3 +1,5 @@
+from graphviz import Digraph
+
 class Token:
 	def __init__(self, initializer):
 		self.content = initializer
@@ -201,6 +203,23 @@ class FSM:
 					return True
 			return False
 
+	def get_dot_structure(self):
+		dot = Digraph()
+		dot.format = 'png'
+		dot.attr(rankdir='LR')
+		dot.node('', shape='none')
+		for state in self.__states:
+			if state in self.__final_states:
+				dot.node(state, shape='doublecircle')
+			else:
+				dot.node(state, shape='circle')
+		dot.edge('', self.__current_state)
+		for state in self.__states:
+			for char in self.__states[state]:
+				for transition in self.__states[state][char]:
+					dot.edge(state, transition, label=char)
+		return dot
+
 class FSMBuilder:
 	@classmethod
 	def build(cls, tokens):
@@ -313,4 +332,8 @@ class FSMBuilder:
 
 	@classmethod
 	def build_determined(cls, tokens):
-		return cls.determinize(cls.build(tokens))
+		nfa = cls.build(tokens)
+		nfa.get_dot_structure().render('nfa.gv', view=False)
+		dfa = cls.determinize(nfa)
+		dfa.get_dot_structure().render('dfa.gv', view=False)
+		return dfa
