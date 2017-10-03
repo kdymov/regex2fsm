@@ -5,8 +5,6 @@ def handler(event):
 	test_cases = filter(lambda x: len(x) > 0, test_text.get('1.0', 'end').split("\n")) 
 	d = FSMBuilder.build_determined(Lexer.tokenize(regex_entry.get()))
 	result = '\n'.join(['%s %s' % (case, d.acceptance(case)) for case in test_cases])
-	print(d._FSM__states)
-	print(result)
 	test_text.delete('1.0', 'end')
 	test_text.insert('1.0', result)
 
