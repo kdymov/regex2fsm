@@ -9,13 +9,17 @@ def handler(event):
 	test_text.insert('1.0', result)
 
 root = Tk()
+regex_label = Label(root, text="Regular expression")
 regex_entry = Entry(root)
+test_label = Label(root, text="Test cases (one per line)")
 test_text = Text(root, wrap='word')
 run_btn = Button(root, text='Run')
 
 run_btn.bind('<Button-1>', handler)
 
+regex_label.pack()
 regex_entry.pack()
+test_label.pack()
 test_text.pack()
 run_btn.pack()
 
