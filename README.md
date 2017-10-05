@@ -26,4 +26,4 @@ python gui.py
 # Requirements
 
 1. Python library graphviz, which is installed using ```pip install graphviz```
-2. Graphviz tool (download [here](http://www.graphviz.org/Download..php))
+2. Graphviz tool (download [here](http://www.graphviz.org/Download..php)). You also have to add directory with Graphviz binaries to PATH.
