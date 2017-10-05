@@ -131,13 +131,15 @@ class FSM:
 		result = []
 		for state in states:
 			try:
-				result += self.__states[state][char]
+				transitions = self.__states[state][char]
+				for t in transitions:
+					result += self.epsilon_closure(t)
 			except:
 				pass
-			try:
-				result += self.__states[state][FSM.EPSILON]
-			except:
-				pass
+			# try:
+			# 	result += self.__states[state][FSM.EPSILON]
+			# except:
+			# 	pass
 		result = sorted(list(set(result)))
 		return result
 
@@ -307,15 +309,18 @@ class FSMBuilder:
 		determined.add_state(queue[0], is_final)
 		determined.set_initial_state(queue[0])
 		while len(queue) > 0:
+			print(new_keys)
 			current = queue[0]
 			queue = queue[1:]
 			closure = new_keys[current]
 			chars = fsm.all_possible_chars(closure)
+			print(chars)
 			if FSM.EPSILON in chars:
 				pos = chars.index(FSM.EPSILON)
 				chars = chars[:pos] + chars[pos + 1:]
 			for char in chars:
 				trans = fsm.all_possible_transitions(closure, char)
+				print(char, trans)
 				to_state = find_key_by_value(new_keys, trans)
 				if to_state is None:
 					to_state = str(new_state_key)
