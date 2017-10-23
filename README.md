@@ -14,9 +14,9 @@ Regex processing algorithm:
 
 #### From command line:
 ```
-python cli.py "{a|b}bba" abba ba ababba baba
+python cli.py "{a|b}bba" 0 abba ba ababba baba
 ```
-First argument is regular expression, next arguments are words for acceptance testing.
+First argument is regular expression, second argument is target machine type (0 for FSM, 1 for Moore machine), next arguments are words for acceptance testing (currently works only for FSM).
 
 #### Using GUI:
 ```
