@@ -1,4 +1,4 @@
-# Regex2FSM-core
+# Regex2FSM
 
 ## General information
 
