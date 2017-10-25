@@ -436,14 +436,22 @@ class MooreMachine:
 		return result
 
 	def acceptance(self, s):
+		prev_state = self.__current_state
 		if len(s) == 0:
-			return self.__is_in_final_state()
+			result = self.__returns[self.__current_state]
+			self.__current_state = prev_state
+			return result
 		else:
-			step = self.__transition(s[0])
-			for item in step:
-				if item.acceptance(s[1:]):
-					return True
-			return False
+			new_start = self.__transition(s[0])
+			print(new_start)
+			if len(new_start) == 0:
+				self.__current_state = prev_state
+				return 'None'
+			else:
+				self.set_initial_state(new_start[0].__current_state)
+				result = self.acceptance(s[1:])
+				self.__current_state = prev_state
+				return result
 
 	def get_dot_structure(self):
 		dot = Digraph()
