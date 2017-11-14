@@ -13,3 +13,6 @@ if machine_type == 0:
 elif machine_type == 1:
 	tokens_lists = [Lexer.tokenize(item.strip()) for item in regex.split(',')]
 	d = MooreMachineBuilder.build_determined(tokens_lists)
+elif machine_type == 2:
+	tokens_lists = [Lexer.tokenize(item.strip()) for item in regex.split(',')]
+	d = BuchiMachineBuilder.build_determined(tokens_lists)
